@@ -9,8 +9,8 @@
 3. To load image data use load_images_metadata.py - here a subset of images can be selected depending on the metadata and used as a dataset
 4. To create a datamodule containing testing, training, validation data use datamobule_metdata.py - here metadata queries need to be given as input to the datamodule for testing, training, validation.
 5. The script setup_experiments_metadata.py contains a function that already separates the metadata into train, test, validation depending on experiments:
-  1. half day
-  2. one day
-  3. one week
-  4. one month
+  - half day
+  - one day
+  - one week
+  - one month
 The for the experiments script is from February and March.
