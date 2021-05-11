@@ -38,12 +38,12 @@ Config file structure:
     
     video_path - top path that contains all day video folders and the metadata csv
     metadata - the selected metadata dataframe that will be used to select the clips
-    use_case - just arbitrary name - it can be used to create a specific folder name in the saved directiory - for example train, val, test, etc.
     main_save_path - the top path for saving the created images and metadata
     every - sampling rate at which the images will be created from the video, default one is every 25th
     pattern_video - what pattern to be searched for in the folders, default one is .mp4
     
 '''
+
 
 
 
@@ -53,13 +53,11 @@ def make_imagesets(cfg):
     # get the dataset from the selected metadata and the specified "every" next one
     dataset = VideoClipLoader(video_dir=cfg['video_path'], metadata = cfg['metadata'], every = cfg['every'])
     
-    # create the save dir depending on the use case
-    use_case_path = os.path.join(cfg['main_save_path'],cfg['use_case']) 
     
     # create the folder
-    if not os.path.exists(use_case_path):
+    if not os.path.exists(cfg['main_save_path']):
         
-        os.makedirs(use_case_path)
+        os.makedirs(cfg['main_save_path'])
         
     #  go through all the clips in the dataset, cut them in images and save them
     metadata_list = []
@@ -67,7 +65,7 @@ def make_imagesets(cfg):
         img, path, curr_metadata = sample
         curr_metadata = curr_metadata.split(',')
         #  save dir for all the images from each clip
-        save_dir = os.path.join(use_case_path,curr_metadata[0],curr_metadata[1])
+        save_dir = os.path.join(cfg['main_save_path'],curr_metadata[0],curr_metadata[1])
 
         #  create the save dir
         if not os.path.exists(save_dir):
@@ -93,7 +91,7 @@ def make_imagesets(cfg):
 
     # save all the new metadata entries per image to a new csv in the same folder
     metadata_df = pd.DataFrame.from_records(metadata_list, columns=['Folder name', 'Clip Name', 'Image Number', 'DateTime', 'Temperature', 'Humidity', 'Precipitation', 'Dew Point', 'Wind Direction', 'Wind Speed', 'Sun Radiation Intensity', 'Min of sunshine latest 10 min'])
-    metadata_df.to_csv(os.path.join(use_case_path, "metadata_images.csv"))
+    metadata_df.to_csv(os.path.join(cfg['main_save_path'], "metadata_images.csv"))
         
 
 
@@ -116,9 +114,9 @@ if __name__ == '__main__':
     
     #  example metadata query for training, validation and testing - training and validation from 1 day from february
     #  testing data is all the other data left
-    metadata_train = metadata[ (metadata["DateTime"].dt.day == 1) & (metadata["DateTime"].dt.month == 2)]
-    metadata_val = metadata[ (metadata["DateTime"].dt.day == 2) & (metadata["DateTime"].dt.month == 2)]
-    metadata_test = metadata[(~metadata["DateTime"].isin(metadata_train["DateTime"])) & (~metadata["DateTime"].isin(metadata_val["DateTime"]))].dropna()
+    # metadata_train = metadata[ (metadata["DateTime"].dt.day == 1) & (metadata["DateTime"].dt.month == 2)]
+    # metadata_val = metadata[ (metadata["DateTime"].dt.day == 2) & (metadata["DateTime"].dt.month == 2)]
+    # metadata_test = metadata[(~metadata["DateTime"].isin(metadata_train["DateTime"])) & (~metadata["DateTime"].isin(metadata_val["DateTime"]))].dropna()
     
     
     main_save_dir = r"Image Dataset"
@@ -127,8 +125,7 @@ if __name__ == '__main__':
     #  creating the cfg file containing all the necessary information for creating the training set
     cfg = {
         'video_path': video_path,
-        'metadata': metadata_train,
-        'use_case': "train",
+        'metadata': metadata,
         'main_save_path': main_save_dir,
         'every': every,
         'pattern_video': pattern_vid,
@@ -137,35 +134,3 @@ if __name__ == '__main__':
     #  call the function
     make_imagesets(cfg)
     
-    # do the same for validation and training data. Making the testing data takes a lot of time -depends on the amount of clips and how much images are produced by each clip
-    
-    # # Validation
-
-    # cfg = {
-    #     'video_path': video_path,
-    #     'metadata': metadata_val,
-    #     'use_case': "val",
-    #     'main_save_path': main_save_dir,
-    #     'every': every,
-    #     'pattern_video': pattern_vid,
-
-    # }
-    
-    # make_imagesets(cfg)
-    
-    
-    # # Testing
-
-    # cfg = {
-    #     'video_path': video_path,
-    #     'metadata': metadata_test,
-    #     'use_case': "test",
-    #     'main_save_path': main_save_dir,
-    #     'every': every,
-    #     'pattern_video': pattern_vid,
-
-    # }
-    
-    # make_imagesets(cfg)
-    
-   
