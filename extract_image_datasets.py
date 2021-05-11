@@ -112,13 +112,6 @@ if __name__ == '__main__':
     
     
     
-    #  example metadata query for training, validation and testing - training and validation from 1 day from february
-    #  testing data is all the other data left
-    # metadata_train = metadata[ (metadata["DateTime"].dt.day == 1) & (metadata["DateTime"].dt.month == 2)]
-    # metadata_val = metadata[ (metadata["DateTime"].dt.day == 2) & (metadata["DateTime"].dt.month == 2)]
-    # metadata_test = metadata[(~metadata["DateTime"].isin(metadata_train["DateTime"])) & (~metadata["DateTime"].isin(metadata_val["DateTime"]))].dropna()
-    
-    
     main_save_dir = r"Image Dataset"
     
     # Training
