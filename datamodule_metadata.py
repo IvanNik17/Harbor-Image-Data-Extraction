@@ -39,7 +39,7 @@ class DataModuleMetadata(pl.LightningDataModule):
 if __name__ == '__main__':
     
     #  path to the images, it should also contain the metadata csv file. The metadata file entries and images need to coincide
-    images_path = r"Data"    
+    images_path = r"Image Dataset"    
     metadata_file_name = "metadata_images.csv"
     metadata_path = os.path.join(images_path,metadata_file_name)
     

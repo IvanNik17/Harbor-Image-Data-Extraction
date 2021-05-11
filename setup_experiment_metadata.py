@@ -49,10 +49,10 @@ if __name__ == '__main__':
     
     
     
-    images_path = r"E:\0_Monthly_videoPipeline\output_image_v2"    
+    images_path = r"Image Dataset"    
     
     
-    metadata_file_name = "metadata_imagesv2.csv"
+    metadata_file_name = "metadata_images.csv"
     metadata_path = os.path.join(images_path,metadata_file_name)
     
     metadata = pd.read_csv(metadata_path)

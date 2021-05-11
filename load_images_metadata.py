@@ -104,7 +104,7 @@ class DatasetWithMetadata(torch.utils.data.Dataset):
     
 if __name__ == '__main__':   
     
-    images_path = r"Data"    
+    images_path = r"Image Dataset"    
     metadata_file_name = "metadata_images.csv"
     metadata_path = os.path.join(images_path,metadata_file_name)
     
