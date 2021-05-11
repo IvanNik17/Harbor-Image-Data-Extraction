@@ -91,7 +91,7 @@ def make_imagesets(cfg):
 
     # save all the new metadata entries per image to a new csv in the same folder
     metadata_df = pd.DataFrame.from_records(metadata_list, columns=['Folder name', 'Clip Name', 'Image Number', 'DateTime', 'Temperature', 'Humidity', 'Precipitation', 'Dew Point', 'Wind Direction', 'Wind Speed', 'Sun Radiation Intensity', 'Min of sunshine latest 10 min'])
-    metadata_df.to_csv(os.path.join(cfg['main_save_path'], "metadata_images.csv"))
+    metadata_df.to_csv(os.path.join(cfg['main_save_path'], "metadata_images.csv"), index=False)
         
 
 
