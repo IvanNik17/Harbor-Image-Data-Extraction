@@ -13,7 +13,7 @@ import pandas as pd
 import torch
 import torch.utils.data
 
-from video_clip_dataloader import VideoClipLoader
+from load_video_metadata import VideoClipLoader
 
 
 '''
