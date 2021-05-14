@@ -18,22 +18,22 @@ from datetime import datetime,timedelta
 #  Example of experimental metadata separation that can be used to load train, val, test data
 def experiment_metadataQueries(metadata, experiment):
     if experiment == "half_day":
-        metadata_train = metadata[ (metadata["DateTime"].dt.day == 1) & (metadata["DateTime"].dt.month == 2) & (metadata["DateTime"].dt.hour > 6) & (metadata["DateTime"].dt.hour < 18)]
-        metadata_val = metadata[ (metadata["DateTime"].dt.day == 2) & (metadata["DateTime"].dt.month == 2) & (metadata["DateTime"].dt.hour > 6) & (metadata["DateTime"].dt.hour < 18)]
+        metadata_train = metadata[ (metadata["DateTime"].dt.day == 10) & (metadata["DateTime"].dt.month == 1) & (metadata["DateTime"].dt.hour > 6) & (metadata["DateTime"].dt.hour < 18)]
+        metadata_val = metadata[ (metadata["DateTime"].dt.day == 11) & (metadata["DateTime"].dt.month == 1) & (metadata["DateTime"].dt.hour > 6) & (metadata["DateTime"].dt.hour < 18)]
         metadata_test = metadata[(~metadata["DateTime"].isin(metadata_train["DateTime"])) & (~metadata["DateTime"].isin(metadata_val["DateTime"]))].dropna()
     elif experiment == "one_day":
-        metadata_train = metadata[ (metadata["DateTime"].dt.day == 1) & (metadata["DateTime"].dt.month == 2)]
-        metadata_val = metadata[ (metadata["DateTime"].dt.day == 2) & (metadata["DateTime"].dt.month == 2)]
+        metadata_train = metadata[ (metadata["DateTime"].dt.day == 10) & (metadata["DateTime"].dt.month == 1)]
+        metadata_val = metadata[ (metadata["DateTime"].dt.day == 11) & (metadata["DateTime"].dt.month == 1)]
         metadata_test = metadata[(~metadata["DateTime"].isin(metadata_train["DateTime"])) & (~metadata["DateTime"].isin(metadata_val["DateTime"]))].dropna()
     elif experiment == "one_week":
         
         dates = []
-        for day in np.arange(1,8,1):
+        for day in np.arange(10,17,1):
             dates.append(datetime(2021,1,day).date())
         metadata_train = metadata[metadata["DateTime"].dt.date.isin(dates)].dropna()
         
         dates = []
-        for day in np.arange(8,15,1):
+        for day in np.arange(17,24,1):
             dates.append(datetime(2021,1,day).date())
         metadata_val = metadata[metadata["DateTime"].dt.date.isin(dates)].dropna()
         
