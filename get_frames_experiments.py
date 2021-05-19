@@ -253,7 +253,9 @@ if __name__ == '__main__':
     cold_month_frames = extract_frames_metadata(cold_month, ["Temperature"])
     # debug_visualization(week_small, week_inds)
     
-    
+    cold_day_frames.to_csv("coldest_day.csv",index=False)
+    cold_week_frames.to_csv("coldest_week.csv",index=False)
+    cold_month_frames.to_csv("coldest_month.csv",index=False)
 
     
     # # Hottest day, week, month
@@ -263,10 +265,18 @@ if __name__ == '__main__':
     hot_week_frames = extract_frames_metadata(hot_week, ["Temperature"])
     hot_month_frames = extract_frames_metadata(hot_month, ["Temperature"])
     
+    hot_day_frames.to_csv("hottest_day.csv",index=False)
+    hot_week_frames.to_csv("hottest_week.csv",index=False)
+    hot_month_frames.to_csv("hottest_month.csv",index=False)
+    
     # # Median day, week, month
     mid_day, mid_week, mid_month = get_experiment_data(metadata,"median")
     
     mid_day_frames = extract_frames_metadata(mid_day, ["Temperature"])
     mid_week_frames = extract_frames_metadata(mid_week, ["Temperature"])
     mid_month_frames = extract_frames_metadata(mid_month, ["Temperature"])
+    
+    mid_day_frames.to_csv("median_day.csv",index=False)
+    mid_week_frames.to_csv("median_week.csv",index=False)
+    mid_month_frames.to_csv("median_month.csv",index=False)
     
