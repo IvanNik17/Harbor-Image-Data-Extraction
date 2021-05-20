@@ -45,6 +45,71 @@ def getGreedyPerm(x,n_points=1024):
 # Function to get data for coldest, hottest and median months
 # Add the full metadata and select - min for coldest, max for hottest, median for median one
 
+
+def get_specific(metadata):
+    metadata =  metadata.set_index('DateTime')
+
+    metadata_grouped = metadata.groupby(pd.Grouper(freq='M')).median()
+    result = metadata_grouped[metadata_grouped["Temperature"] == metadata_grouped["Temperature"].median()]
+    
+    return result
+
+
+def get_experiment_data_v2(metadata,which = "min"):
+    
+    
+    if which == "min":
+        
+        compare_month = metadata.groupby([metadata["DateTime"].dt.month]).min()
+        month= compare_month.index[compare_month["Temperature"] == compare_month ["Temperature"].min()][0]
+        
+        needed_month = metadata[metadata["DateTime"].dt.month == month]
+        
+        compare_day = needed_month.groupby([needed_month["DateTime"].dt.day]).min()
+        day = compare_day.index[compare_day['Temperature']==compare_day['Temperature'].min()][0] 
+        
+        
+    elif which =="max":
+        
+        compare_month = metadata.groupby([metadata["DateTime"].dt.month]).max()
+        month= compare_month.index[compare_month["Temperature"] == compare_month ["Temperature"].max()][0]
+        
+        needed_month = metadata[metadata["DateTime"].dt.month == month]
+        
+        compare_day = needed_month.groupby([needed_month["DateTime"].dt.day]).max()
+        day = compare_day.index[compare_day['Temperature']==compare_day['Temperature'].max()][0] 
+        
+    elif which == "median":
+        
+        compare_month = metadata.groupby([metadata["DateTime"].dt.month]).quantile(interpolation='nearest')
+        month= compare_month.index[compare_month["Temperature"] == compare_month ["Temperature"].quantile(interpolation='nearest')][0]
+        
+        needed_month = metadata[metadata["DateTime"].dt.month == month]
+        
+        compare_day = needed_month.groupby([needed_month["DateTime"].dt.day]).quantile(interpolation='nearest')
+        day = compare_day.index[compare_day['Temperature']==compare_day['Temperature'].quantile(interpolation='nearest')][0]
+    
+    
+    
+    needed_day = needed_month[needed_month["DateTime"].dt.day == day]
+    
+    all_possible_days = needed_month["DateTime"].dt.day.unique()
+    dist = np.abs(all_possible_days - day)
+    ind= np.argsort(dist)[:7]
+    weekdays = all_possible_days[ind]
+    
+    needed_week = needed_month[needed_month["DateTime"].dt.day.isin(weekdays)]
+    
+    
+    # reset indices to start from 0
+    needed_day = needed_day.reset_index(drop=True)
+    needed_week = needed_week.reset_index(drop=True)
+    needed_month = needed_month.reset_index(drop=True)
+        
+    return needed_day, needed_week, needed_month
+
+
+
 def get_experiment_data(metadata, which = "min"):
     
     mask = []
@@ -245,38 +310,43 @@ if __name__ == '__main__':
 
     metadata['DateTime'] = pd.to_datetime(metadata['DateTime'], dayfirst = True)
     
-    # Coldest day, week, month
-    cold_day, cold_week, cold_month = get_experiment_data(metadata,"min")
     
-    cold_day_frames = extract_frames_metadata(cold_day, ["Temperature"])
-    cold_week_frames = extract_frames_metadata(cold_week, ["Temperature"])
-    cold_month_frames = extract_frames_metadata(cold_month, ["Temperature"])
-    # debug_visualization(week_small, week_inds)
     
-    cold_day_frames.to_csv("coldest_day.csv",index=False)
-    cold_week_frames.to_csv("coldest_week.csv",index=False)
-    cold_month_frames.to_csv("coldest_month.csv",index=False)
 
     
-    # # Hottest day, week, month
-    hot_day, hot_week, hot_month = get_experiment_data(metadata,"max")
-
-    hot_day_frames = extract_frames_metadata(hot_day, ["Temperature"])
-    hot_week_frames = extract_frames_metadata(hot_week, ["Temperature"])
-    hot_month_frames = extract_frames_metadata(hot_month, ["Temperature"])
     
-    hot_day_frames.to_csv("hottest_day.csv",index=False)
-    hot_week_frames.to_csv("hottest_week.csv",index=False)
-    hot_month_frames.to_csv("hottest_month.csv",index=False)
+    # # Coldest day, week, month
+    # cold_day, cold_week, cold_month = get_experiment_data_v2(metadata,"min")
+    
+    # cold_day_frames = extract_frames_metadata(cold_day, ["Temperature"])
+    # cold_week_frames = extract_frames_metadata(cold_week, ["Temperature"])
+    # cold_month_frames = extract_frames_metadata(cold_month, ["Temperature"])
+    # # debug_visualization(week_small, week_inds)
+    
+    # cold_day_frames.to_csv("coldest_day.csv",index=False)
+    # cold_week_frames.to_csv("coldest_week.csv",index=False)
+    # cold_month_frames.to_csv("coldest_month.csv",index=False)
+
+    
+    # # # Hottest day, week, month
+    # hot_day, hot_week, hot_month = get_experiment_data_v2(metadata,"max")
+
+    # hot_day_frames = extract_frames_metadata(hot_day, ["Temperature"])
+    # hot_week_frames = extract_frames_metadata(hot_week, ["Temperature"])
+    # hot_month_frames = extract_frames_metadata(hot_month, ["Temperature"])
+    
+    # hot_day_frames.to_csv("hottest_day.csv",index=False)
+    # hot_week_frames.to_csv("hottest_week.csv",index=False)
+    # hot_month_frames.to_csv("hottest_month.csv",index=False)
     
     # # Median day, week, month
-    mid_day, mid_week, mid_month = get_experiment_data(metadata,"median")
+    # mid_day, mid_week, mid_month = get_experiment_data_v2(metadata,"median")
     
-    mid_day_frames = extract_frames_metadata(mid_day, ["Temperature"])
-    mid_week_frames = extract_frames_metadata(mid_week, ["Temperature"])
-    mid_month_frames = extract_frames_metadata(mid_month, ["Temperature"])
+    # mid_day_frames = extract_frames_metadata(mid_day, ["Temperature"])
+    # mid_week_frames = extract_frames_metadata(mid_week, ["Temperature"])
+    # mid_month_frames = extract_frames_metadata(mid_month, ["Temperature"])
     
-    mid_day_frames.to_csv("median_day.csv",index=False)
-    mid_week_frames.to_csv("median_week.csv",index=False)
-    mid_month_frames.to_csv("median_month.csv",index=False)
+    # mid_day_frames.to_csv("median_day.csv",index=False)
+    # mid_week_frames.to_csv("median_week.csv",index=False)
+    # mid_month_frames.to_csv("median_month.csv",index=False)
     
