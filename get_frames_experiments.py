@@ -301,6 +301,16 @@ def debug_visualization(all_daily_smaller, all_indices):
     plt.xlabel('Day')
     plt.ylabel('Temperature')
     ax.set_aspect('equal', adjustable='box')
+    
+    
+def debug_visualization_v2(metadata, selected_metadata):
+    metadata['NewTime'] = metadata['DateTime']+ pd.to_timedelta(metadata['Image Number'], unit='s') 
+
+    selected_metadata['NewTime'] = selected_metadata['DateTime']+ pd.to_timedelta(selected_metadata['Image Number'], unit='s')
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.scatter(metadata['NewTime'], metadata['Temperature'], s=5, c="blue", alpha=0.5)
+    ax.scatter(selected_metadata['NewTime'], selected_metadata['Temperature'], s=5, c="red", alpha=0.5)
 
 
 
