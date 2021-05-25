@@ -51,76 +51,76 @@ def get_specific(metadata):
 
     metadata_grouped = metadata.groupby(pd.Grouper(freq='M')).median()
     result = metadata_grouped[metadata_grouped["Temperature"] == metadata_grouped["Temperature"].median()]
-    
+
     return result
 
 
 def get_experiment_data_v2(metadata,which = "min"):
-    
-    
+
+
     if which == "min":
-        
+
         compare_month = metadata.groupby([metadata["DateTime"].dt.month]).min()
         month= compare_month.index[compare_month["Temperature"] == compare_month ["Temperature"].min()][0]
-        
+
         needed_month = metadata[metadata["DateTime"].dt.month == month]
-        
+
         compare_day = needed_month.groupby([needed_month["DateTime"].dt.day]).min()
-        day = compare_day.index[compare_day['Temperature']==compare_day['Temperature'].min()][0] 
-        
-        
+        day = compare_day.index[compare_day['Temperature']==compare_day['Temperature'].min()][0]
+
+
     elif which =="max":
-        
+
         compare_month = metadata.groupby([metadata["DateTime"].dt.month]).max()
         month= compare_month.index[compare_month["Temperature"] == compare_month ["Temperature"].max()][0]
-        
+
         needed_month = metadata[metadata["DateTime"].dt.month == month]
-        
+
         compare_day = needed_month.groupby([needed_month["DateTime"].dt.day]).max()
-        day = compare_day.index[compare_day['Temperature']==compare_day['Temperature'].max()][0] 
-        
+        day = compare_day.index[compare_day['Temperature']==compare_day['Temperature'].max()][0]
+
     elif which == "median":
-        
+
         compare_month = metadata.groupby([metadata["DateTime"].dt.month]).quantile(interpolation='nearest')
         month= compare_month.index[compare_month["Temperature"] == compare_month ["Temperature"].quantile(interpolation='nearest')][0]
-        
+
         needed_month = metadata[metadata["DateTime"].dt.month == month]
-        
+
         compare_day = needed_month.groupby([needed_month["DateTime"].dt.day]).quantile(interpolation='nearest')
         day = compare_day.index[compare_day['Temperature']==compare_day['Temperature'].quantile(interpolation='nearest')][0]
-    
-    
-    
+
+
+
     needed_day = needed_month[needed_month["DateTime"].dt.day == day]
-    
+
     all_possible_days = needed_month["DateTime"].dt.day.unique()
     dist = np.abs(all_possible_days - day)
     ind= np.argsort(dist)[:7]
     weekdays = all_possible_days[ind]
-    
+
     needed_week = needed_month[needed_month["DateTime"].dt.day.isin(weekdays)]
-    
-    
+
+
     # reset indices to start from 0
     needed_day = needed_day.reset_index(drop=True)
     needed_week = needed_week.reset_index(drop=True)
     needed_month = needed_month.reset_index(drop=True)
-        
+
     return needed_day, needed_week, needed_month
 
 
 
 def get_experiment_data(metadata, which = "min"):
-    
+
     mask = []
-    
+
     if which == "min":
         mask = metadata["Temperature"] == metadata["Temperature"].min()
     elif which =="max":
         mask = metadata["Temperature"] == metadata["Temperature"].max()
     elif which == "median":
         mask = metadata["Temperature"] == metadata["Temperature"].median()
-        
+
     # get the day number based on mask - here using "Folder name", as it is the date
     needed_day_number = metadata[mask].iloc[0]["Folder name"]
     # get all rows that have the same Folder name
@@ -138,12 +138,12 @@ def get_experiment_data(metadata, which = "min"):
     #  get all rows that have the same month number
     needed_month_frames = metadata[metadata["DateTime"].dt.month == needed_month_number]
     num_frames_needed_month = len(needed_month_frames)
-    
+
     # reset indices to start from 0
     needed_day_frames = needed_day_frames.reset_index(drop=True)
     needed_week_frames = needed_week_frames.reset_index(drop=True)
     needed_month_frames = needed_month_frames.reset_index(drop=True)
-        
+
     return needed_day_frames, needed_week_frames, needed_month_frames
 
 
@@ -153,34 +153,34 @@ def extract_furthest_frames_metadata_daily(metadata, features, num_frames = 100,
     the features that are needed and gets farthest point frames
     ----------
     metadata : pandas dataframe, one day worth of data
-    
+
     features : columns from the metadata dataframe to be used in the distance calculation
         example ["Temperature"] or ["Temperature", "Humidity"]
-    
+
     num_frames : how many frames to be extracted from the furthest point sampling
-    
+
     reserved_at_ends : how many points at both ends of each clip to be reserved and not sampled
-    
+
     Return
     ------
     pandas dataframe containing the sampled frame metadata for the current day
     """
-    
+
     # Add the "Image Number" to the features
     curr_features = features.copy()
     curr_features.append('Image Number')
     # Make a sub-dataframe for the calculations
     metadata_small = metadata[curr_features]
-    
+
     metadata_small = metadata_small.reset_index(drop=True)
-    
+
     # make a new column containing the indices, before cutting the reserved ones
     metadata_small["Numbering"] = metadata_small.index
 
     # get all the unique Image Numbers
     unique_frame_nums = metadata_small['Image Number'].unique()
 
-    # get the reserved_at_ends from the front and back of the array 
+    # get the reserved_at_ends from the front and back of the array
     reserved_frame_nums = unique_frame_nums[:reserved_at_ends]
     reserved_frame_nums = np.concatenate((reserved_frame_nums, unique_frame_nums[-reserved_at_ends:]), axis=0)
 
@@ -192,8 +192,8 @@ def extract_furthest_frames_metadata_daily(metadata, features, num_frames = 100,
 
     #  remove the Image Number column as it is not needed for the pdist calc
     metadata_small = metadata_small.drop(["Image Number"], axis=1)
-    
-    # normalize the columns between the minimum and maximum  
+
+    # normalize the columns between the minimum and maximum
     for column in metadata_small.columns:
         metadata_small[column] = (metadata_small[column] - np.min(metadata_small[column]))/np.ptp(metadata_small[column])
 
@@ -209,7 +209,7 @@ def extract_furthest_frames_metadata_daily(metadata, features, num_frames = 100,
     indices_metadata = indices_before_cutting.iloc[indices_search].to_numpy()
 
     # get the sampled frame metadata
-    
+
     if debug:
         return metadata.iloc[indices_metadata],metadata_small, indices_search
     else:
@@ -222,30 +222,30 @@ def extract_frames_metadata(metadata, features, num_frames = 100, reserved_at_en
     per day depending on how many days the dataset contains
     ----------
     metadata : full input dataset of a day, week, month, etc.
-    
+
     features : columns from the metadata dataframe to be used in the distance calculation
         example ["Temperature"] or ["Temperature", "Humidity"]
-    
+
     num_frames : how many frames in total do we need
-    
+
     reserved_at_ends : how many points at both ends of each clip to be reserved and not sampled
-    
+
     debug : for debugging purposes it also calculates and extracts addional information
-    
+
     Return
     ------
     pandas dataframe containing the sampled frame metadata
     """
-    
+
     # get the unique days in the dataframe
     unique_days = metadata["Folder name"].unique()
     #  number of days
     num_days = len(unique_days)
 
-    # calculate how many samplings there need to be to get exactly the needed num_frames 
+    # calculate how many samplings there need to be to get exactly the needed num_frames
     daily_frame_nums = [num_frames // num_days + (1 if x < num_frames % num_days else 0)  for x in range (num_days)]
 
-    
+
     list_of_days = []
 
     counter = 0
@@ -254,10 +254,10 @@ def extract_frames_metadata(metadata, features, num_frames = 100, reserved_at_en
     all_indices = []
     #  do for each day
     for day in unique_days:
-        
+
         # get sub-dataframe for the current day
         curr_day = metadata[metadata["Folder name"] == day]
-        
+
         # get the required number of samplings for the current day
         if debug:
             curr_day_frames,curr_smaller, curr_indices = extract_furthest_frames_metadata_daily(curr_day, features, daily_frame_nums[counter], reserved_at_ends, debug)
@@ -266,15 +266,15 @@ def extract_frames_metadata(metadata, features, num_frames = 100, reserved_at_en
         print(f"Processing day {day}")
         # append to a list of frames
         list_of_days.append(curr_day_frames)
-        
+
         if debug:
             all_daily_smaller.append(curr_smaller)
             all_indices.append(pd.Series(curr_indices))
         counter+=1
-        
+
     #  transform the list of dataframes into a dataframe
     output_dataframe = pd.concat(list_of_days)
-    
+
     if debug:
         return output_dataframe, all_daily_smaller, all_indices
     else:
@@ -283,28 +283,28 @@ def extract_frames_metadata(metadata, features, num_frames = 100, reserved_at_en
 # debug function for visualization of the additional information that can be extracted from the extract_frames_metadata function
 # the Debug variable should be set to True to get the needed daily_smaller and all_indices lists for visualization
 def debug_visualization(all_daily_smaller, all_indices):
-    
+
     fig = plt.figure()
     ax = fig.add_subplot(111)
     for i in range(0, len(all_daily_smaller)):
-    
+
         curr_day_small = all_daily_smaller[i]
         curr_day_indices = all_indices[i]
-        
+
 
 
         ax.scatter(curr_day_small['Numbering']+i, curr_day_small['Temperature'], s=5, c="blue", alpha=0.5)
-    
+
         ax.scatter(curr_day_small.iloc[curr_day_indices]['Numbering']+i, curr_day_small.iloc[curr_day_indices]['Temperature'], s=5, c="red", alpha=1)
-        
-        
+
+
     plt.xlabel('Day')
     plt.ylabel('Temperature')
     ax.set_aspect('equal', adjustable='box')
-    
-    
+
+
 def debug_visualization_v2(metadata, selected_metadata):
-    metadata['NewTime'] = metadata['DateTime']+ pd.to_timedelta(metadata['Image Number'], unit='s') 
+    metadata['NewTime'] = metadata['DateTime']+ pd.to_timedelta(metadata['Image Number'], unit='s')
 
     selected_metadata['NewTime'] = selected_metadata['DateTime']+ pd.to_timedelta(selected_metadata['Image Number'], unit='s')
     fig = plt.figure()
@@ -315,52 +315,44 @@ def debug_visualization_v2(metadata, selected_metadata):
 
 
 if __name__ == '__main__':
-    
-    images_path = r"Image Dataset"    
-    metadata_file_name = "metadata_images.csv"
-    metadata_path = os.path.join(images_path,metadata_file_name)
-    
+
+    metadata_path = "metadata_images.csv"
+
     metadata = pd.read_csv(metadata_path)
 
     metadata['DateTime'] = pd.to_datetime(metadata['DateTime'], dayfirst = True)
-    
-    
-    
 
-    
-    
     # Coldest day, week, month
     cold_day, cold_week, cold_month = get_experiment_data_v2(metadata,"min")
-    
+
     cold_day_frames = extract_frames_metadata(cold_day, ["Temperature"])
     cold_week_frames = extract_frames_metadata(cold_week, ["Temperature"])
     cold_month_frames = extract_frames_metadata(cold_month, ["Temperature"])
     # debug_visualization(week_small, week_inds)
-    
+
     cold_day_frames.to_csv("coldest_day.csv",index=False)
     cold_week_frames.to_csv("coldest_week.csv",index=False)
     cold_month_frames.to_csv("coldest_month.csv",index=False)
 
-    
+
     # # Hottest day, week, month
     hot_day, hot_week, hot_month = get_experiment_data_v2(metadata,"max")
 
     hot_day_frames = extract_frames_metadata(hot_day, ["Temperature"])
     hot_week_frames = extract_frames_metadata(hot_week, ["Temperature"])
     hot_month_frames = extract_frames_metadata(hot_month, ["Temperature"])
-    
+
     hot_day_frames.to_csv("hottest_day.csv",index=False)
     hot_week_frames.to_csv("hottest_week.csv",index=False)
     hot_month_frames.to_csv("hottest_month.csv",index=False)
-    
+
     # Median day, week, month
     mid_day, mid_week, mid_month = get_experiment_data_v2(metadata,"median")
-    
+
     mid_day_frames = extract_frames_metadata(mid_day, ["Temperature"])
     mid_week_frames = extract_frames_metadata(mid_week, ["Temperature"])
     mid_month_frames = extract_frames_metadata(mid_month, ["Temperature"])
-    
+
     mid_day_frames.to_csv("median_day.csv",index=False)
     mid_week_frames.to_csv("median_week.csv",index=False)
     mid_month_frames.to_csv("median_month.csv",index=False)
-    

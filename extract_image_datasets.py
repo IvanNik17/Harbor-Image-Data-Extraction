@@ -35,13 +35,13 @@ METADATA structure:
 
 '''
 Config file structure:
-    
+
     video_path - top path that contains all day video folders and the metadata csv
     metadata - the selected metadata dataframe that will be used to select the clips
     main_save_path - the top path for saving the created images and metadata
     every - sampling rate at which the images will be created from the video, default one is every 25th
     pattern_video - what pattern to be searched for in the folders, default one is .mp4
-    
+
 '''
 
 
@@ -49,16 +49,16 @@ Config file structure:
 
 # Script to get the queried metadata and create image set for it
 def make_imagesets(cfg):
-    
+
     # get the dataset from the selected metadata and the specified "every" next one
     dataset = VideoClipLoader(video_dir=cfg['video_path'], metadata = cfg['metadata'], every = cfg['every'])
-    
-    
+
+
     # create the folder
     if not os.path.exists(cfg['main_save_path']):
-        
+
         os.makedirs(cfg['main_save_path'])
-        
+
     #  go through all the clips in the dataset, cut them in images and save them
     metadata_list = []
     for i, sample in enumerate(dataset):
@@ -69,51 +69,49 @@ def make_imagesets(cfg):
 
         #  create the save dir
         if not os.path.exists(save_dir):
-            
+
             os.makedirs(save_dir)
-            
+
         #  go through all the images from the clip, transform them and save them to disk
         count = 0
         for sub_img in img:
-            sub_img = sub_img.unsqueeze(0) 
+            sub_img = sub_img.unsqueeze(0)
             input_img = sub_img.squeeze(1).mul(255).byte().numpy()
-            
+
             count_str ="image_" + str(count).zfill(4)
             cv2.imwrite(os.path.join(save_dir, count_str + '.jpg'), np.squeeze(input_img))
             #  create a metadata entry for the image, containing the image number
             img_metadata = [curr_metadata[0], curr_metadata[1], count_str, curr_metadata[2], curr_metadata[3], curr_metadata[4], curr_metadata[5], curr_metadata[6],curr_metadata[7], curr_metadata[8],curr_metadata[9],curr_metadata[10]]
             metadata_list.append(img_metadata)
-        
-            
+
+
             count+=1
-            
+
         print(f"Finished {save_dir}")
 
     # save all the new metadata entries per image to a new csv in the same folder
     metadata_df = pd.DataFrame.from_records(metadata_list, columns=['Folder name', 'Clip Name', 'Image Number', 'DateTime', 'Temperature', 'Humidity', 'Precipitation', 'Dew Point', 'Wind Direction', 'Wind Speed', 'Sun Radiation Intensity', 'Min of sunshine latest 10 min'])
     metadata_df.to_csv(os.path.join(cfg['main_save_path'], "metadata_images.csv"), index=False)
-        
+
 
 
 
 if __name__ == '__main__':
-   
+
     every = 25
-    
+
     pattern_vid = ".mp4"
 
-
     video_path = r"Data"
-    
-    metadata_name = "metadata.csv"
-    metadata_path = os.path.join(video_path, metadata_name)
+
+    metadata_path = "metadata.csv"
     metadata = pd.read_csv(metadata_path)
     metadata["DateTime"] = pd.to_datetime(metadata['DateTime'], dayfirst = True)
-    
-    
-    
+
+
+
     main_save_dir = r"Image Dataset"
-    
+
     # Training
     #  creating the cfg file containing all the necessary information for creating the training set
     cfg = {
@@ -126,4 +124,3 @@ if __name__ == '__main__':
     }
     #  call the function
     make_imagesets(cfg)
-    

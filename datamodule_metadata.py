@@ -31,35 +31,37 @@ class DataModuleMetadata(pl.LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(self.data_val, batch_size=self.cfg['batch_size'], shuffle=False)
-    
+
     def test_dataloader(self):
         return DataLoader(self.data_test, batch_size=self.cfg['batch_size'], shuffle=False)
 
 
 if __name__ == '__main__':
-    
+
     #  path to the images, it should also contain the metadata csv file. The metadata file entries and images need to coincide
-    images_path = r"Image Dataset"    
+    images_path = r"Image Dataset"
     metadata_file_name = "metadata_images.csv"
     metadata_path = os.path.join(images_path,metadata_file_name)
-    
+
     #  read the metadata
     metadata = pd.read_csv(metadata_path)
     #  change the DateTime column to a pandas datetime
     metadata["DateTime"] = pd.to_datetime(metadata['DateTime'])
-    
+
     #  select parts of the metadata for training, validation and testing
     metadata_train = metadata[(metadata["DateTime"].dt.day==11) & (metadata["DateTime"].dt.month==2)]
     metadata_val = metadata[(metadata["DateTime"].dt.day==12) & (metadata["DateTime"].dt.month==2)]
     metadata_test = metadata[(metadata["DateTime"].dt.day==13) & (metadata["DateTime"].dt.month==2)]
-    
+
+    print(metadata_test)
+
     # create the config file for the datamodule:
     '''
     img_dir - the path where the top path where all the images are
     metadata_train - the training part of the metadata, which would be used to get the correct images
     metadata_val - the validation part of the metadata
     metadata_test - the testing part of the metadata
-    get_metadata - boolean which signals if you want to return metadata as part of the dataloader. 
+    get_metadata - boolean which signals if you want to return metadata as part of the dataloader.
         If it is True - the dataloader returns a tuple of 3 items - (tensor of images, folders of images, metadata string of the images)
         If it is False - the dataloader returns a tuple of 2 items - (tensor of images, folders of images)
     batch_size - amount of images to return
@@ -72,7 +74,7 @@ if __name__ == '__main__':
        'get_metadata': True,
        'batch_size': 16,
     }
-    
+
     # instantiate the class and give it the cfg dictionary, call the setup
     dm = DataModuleMetadata(cfg)
     dm.setup()
