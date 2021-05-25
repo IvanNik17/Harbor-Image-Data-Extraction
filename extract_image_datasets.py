@@ -104,7 +104,9 @@ if __name__ == '__main__':
 
     video_path = r"Data"
 
-    metadata_path = "metadata.csv"
+    metadata_name = "metadata.csv"
+    metadata_path = os.path.join(video_path, metadata_name)
+    
     metadata = pd.read_csv(metadata_path)
     metadata["DateTime"] = pd.to_datetime(metadata['DateTime'], dayfirst = True)
 
